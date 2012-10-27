@@ -10,12 +10,17 @@ insmod peemuperf.ko evdelay=500 evlist=1,68,3,4 evdebug=1
 evdelay = Delay between successive reading of samples from event counters (milliSec)
 evlist = Decimal value of event IDs to be monitored (refer ARM TRM). If not specified, below are used:
 
-1 ==> Instruction fetch that causes a refill at the lowest level of instruction or unified cache
-68 ==> Any cacheable miss in the L2 cache.
-3 ==> Data read or write operation that causes a refill at the lowest level of data or unified cache
-4 ==> Data read or write operation that causes a cache access at the lowest level of data or unified cache
+   1 ==> Instruction fetch that causes a refill at the lowest level of instruction or unified cache
 
-evdebug = 0 (no messages from kernel module) / 1 (event counters are printed out - warning: will flood the console)
+   68 ==> Any cacheable miss in the L2 cache
+
+   3 ==> Data read or write operation that causes a refill at the lowest level of data or unified cache
+
+   4 ==> Data read or write operation that causes a cache access at the lowest level of data or unified cache
+
+(for other valid values, refer to Cortex-A TRM)
+
+evdebug = 0 (default - no messages from kernel module) / 1 (event counters are printed out - warning: will flood the console)
 
 Output
 =======
