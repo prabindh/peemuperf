@@ -1,14 +1,18 @@
 peemuperf
 =========
 
-Performance Monitoring for ARM using PMU - Cycle count, Cache misses, and more...
+Linux Performance Monitoring using PMU - ARM Cycles, Cache misses, and more ...
 
 Usage
 =========
-insmod peemuperf.ko evdelay=500 evlist=1,68,3,4 evdebug=1
-rmmod peemuperf.ko
+--> insmod peemuperf.ko evdelay=500 evlist=1,68,3,4 evdebug=1
+
+--> rmmod peemuperf.ko
+
+Parameters:
 
 evdelay = Delay between successive reading of samples from event counters (milliSec)
+
 evlist = Decimal value of event IDs to be monitored (refer ARM TRM). If not specified, below are used:
 
    1 ==> Instruction fetch that causes a refill at the lowest level of instruction or unified cache
