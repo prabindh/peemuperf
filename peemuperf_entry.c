@@ -31,39 +31,6 @@ static int available_evcount = 0;
 static int evdelay = 500; //mSec
 static int evdebug = 0;
 
-struct evlist_struct
-{
-	struct list_head list;
-	u32 event_id;
-};
-LIST_HEAD(evlist_head);
-
-//static char* evlist;
-static void parse_evlist(char* evlist)
-{
-	char* curr = strsep(&evlist, "0x");
-	int ret;
-	int count = 0;
-	while(curr)
-	{
-		struct evlist_struct *curr_evlist = 
-			kmalloc(sizeof(struct evlist_struct), GFP_KERNEL);
-		INIT_LIST_HEAD(&curr_evlist->list);
-		ret = kstrtou32(curr, 0, &curr_evlist->event_id);
-
-		if(evdebug == 1) printk("string = %s, Input curr_evlist->event_id = %d\n", 
-			curr, curr_evlist->event_id);
-		list_add(&curr_evlist->list, &evlist_head);
-
-		curr = strsep(&curr, "0x");
-		if(count++ > 6)
-		{
-			if(evdebug == 1) printk("More than expected inputs (%d)\n", count);
-			break;
-		}
-	}
-}
-
 static void pmu_start(unsigned int event_array[],unsigned int count)
 {
 	int i;
@@ -132,9 +99,6 @@ static int peemuperf_thread(void* data)
 	{
 		if(kthread_should_stop()) break;
 
-		//pmu_start(0x01,0x02,0x03,0x04,0x05,0x06);
-		//1 - IFETCH MISS, 0x44 - L2 CACHE MISS, 
-		//pmu_start(0x01,0x44,0x03,0x04);
 		pmu_start(evlist, available_evcount);
 
 		msleep(evdelay);
@@ -231,7 +195,6 @@ static void __exit peemuperf_exit()
 /****************************************************************************
 * Configuration
 ****************************************************************************/
-//module_param_named(omapes, sgxdbgkm_omapes, int, 5);
 module_param(evdelay, int, 500);
 module_param(evdebug, int, 0);
 module_param_array(evlist, int, &evlist_count, 0000);
