@@ -51,5 +51,9 @@ Validation
 Tested on kernel 3.2, with gcc4.5 toolchain
 Validated on AM335x (OMAP3/Beagle variants will work) - for Cortex-A8. Cortex-A9 has larger counter list, and will also work
 
+Limitations
+===========
+Interrupts not enabled and not supported, so watchout for overflow flags manually
+
 ===
 prabindh@yahoo.com
