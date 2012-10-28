@@ -51,8 +51,6 @@ static void pmu_start(unsigned int event_array[],unsigned int count)
 	for(i = 0;i < count;i ++)
 	{
 		pmn_config(i, event_array[i]);
-		if(evdebug == 1) printk("Configured counter[%d] for event 0x%x\n", 
-			i, event_array[i]);
 	}
 
 	ccnt_divider(1); //Enable divide by 64
@@ -78,18 +76,17 @@ static void pmu_stop(void)
 
 	for(i = 0;i < counters;i ++)
 	{
-		if(evdebug == 1) printk("PMU.counter[%d]= %d\n", i, read_pmn(i));
+		if(evdebug == 1) printk("%u\t", read_pmn(i));
 #if defined(CONFIG_PROC_FS)
 		currProcBufLen += sprintf(proc_buf + currProcBufLen,
-			"PMU.counter[%d]= %d\n", i, read_pmn(i));
+			"PMU.counter[%d]= %u\n", i, read_pmn(i));
 #endif
 	}
 
 	cycle_count = read_ccnt(); // Read CCNT
 	overflow = read_flags();   //Check for overflow flag
 
-	if(evdebug == 1) printk("PMU.overflow= 0x%x, PMU.CCNT= %d \n", 
-		overflow,cycle_count);
+	if(evdebug == 1) printk("%u\t%u\t", overflow,cycle_count);
 
 	if(emifcnt == 1)
 	{
@@ -97,15 +94,15 @@ static void pmu_stop(void)
 		 emif_writecount = ioread32(emifcnt_reg_base+0x80);
 		 emif_readcount = ioread32(emifcnt_reg_base+0x84);
 	}
-	if(evdebug == 1) printk("EMIF.readcount= 0x%x, EMIF.writecount= 0x%x\n",
+	if(evdebug == 1) printk("%u\t%u\n",
 		emif_readcount, emif_writecount);
 
 #if defined(CONFIG_PROC_FS)
 	currProcBufLen += sprintf(proc_buf + currProcBufLen,
-		"PMU.overflow= %d\nPMU.CCNT= %d\n",
+		"PMU.overflow= %u\nPMU.CCNT= %u\n",
 		overflow,cycle_count);
 	currProcBufLen += sprintf(proc_buf + currProcBufLen,
-		"EMIF.readcount= %d\nEMIF.writecount= %d\n",
+		"EMIF.readcount= %u\nEMIF.writecount= %u\n",
 		emif_readcount, emif_writecount);
 #endif
 }
