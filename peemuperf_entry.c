@@ -13,13 +13,21 @@
 #include <linux/slab.h>
 
 #include "v7_pmu.h"
+#include <linux/ioport.h>
+#include <asm/io.h>
 
 static void pmu_start(unsigned int event_array[],unsigned int count);
 static void pmu_stop(void);
 static int __peemuperf_init_checks(void);
 static void __exit peemuperf_exit(void);
 
+
+#define EMIFCNT_MAP_LEN 0x200
+#define EMIFCNT_MAP_BASE_ADDR 0x4c000000
 static int emifcnt = 0;
+static int emif_readcount = 0;
+static int emif_writecount = 0;
+static void* emifcnt_reg_base;
 
 #if defined(CONFIG_PROC_FS)
 #include <linux/proc_fs.h>
@@ -70,31 +78,36 @@ static void pmu_stop(void)
 
 	for(i = 0;i < counters;i ++)
 	{
-		if(evdebug == 1) printk("Counter[%d]= %d\n", i, read_pmn(i));
+		if(evdebug == 1) printk("PMU.counter[%d]= %d\n", i, read_pmn(i));
 #if defined(CONFIG_PROC_FS)
 		currProcBufLen += sprintf(proc_buf + currProcBufLen,
-			"Counter[%d]= %d\n", i, read_pmn(i));
+			"PMU.counter[%d]= %d\n", i, read_pmn(i));
 #endif
 	}
 
 	cycle_count = read_ccnt(); // Read CCNT
 	overflow = read_flags();   //Check for overflow flag
 
-	if(evdebug == 1) printk("Overflow flag: = 0x%x, Cycle Count: = %d \n\n", 
+	if(evdebug == 1) printk("PMU.overflow= 0x%x, PMU.CCNT= %d \n", 
 		overflow,cycle_count);
-#if defined(CONFIG_PROC_FS)
-	currProcBufLen += sprintf(proc_buf + currProcBufLen,
-		"Overflow flag: = 0x%x, Cycle Count: = %d \n\n", 
-		overflow,cycle_count);
-#endif
 
 	if(emifcnt == 1)
 	{
 		//Now read the READ+WRITE monitoring counters
-		 emifreadcount = ioread32(emifcnt_reg_base+0x80);
-		 emifwritecount = ioread32(emifcnt_reg_base+0x84);
+		 emif_readcount = ioread32(emifcnt_reg_base+0x80);
+		 emif_writecount = ioread32(emifcnt_reg_base+0x84);
 	}
+	if(evdebug == 1) printk("EMIF.readcount= 0x%x, EMIF.writecount= 0x%x\n",
+		emif_readcount, emif_writecount);
 
+#if defined(CONFIG_PROC_FS)
+	currProcBufLen += sprintf(proc_buf + currProcBufLen,
+		"PMU.overflow= 0x%x\nPMU.CCNT= %d \n", 
+		overflow,cycle_count);
+	currProcBufLen += sprintf(proc_buf + currProcBufLen,
+		"EMIF.readcount= 0x%x\nEMIF.writecount= 0x%x\n",
+		emif_readcount, emif_writecount);
+#endif
 }
 
 
@@ -148,7 +161,7 @@ static __init int register_proc(void)
 
 	for(c = 0;c < MAX_PROC_BUF_LEN;c ++)
 	{
-		proc_buf[c] = '\0';
+		proc_buf[c] = 0;
 	}
 
 	return proc_peemuperf != NULL;
@@ -172,15 +185,12 @@ static int __peemuperf_init_checks()
 	peemuperf_task = kthread_run(peemuperf_thread,(void *)0, 
 				"peemuperf_thread");
 	
-#define EMIFCNT_MAP_LEN 0x100
-#define EMIFCNT_MAP_BASE_ADDR 0x4c000000
-
 	if(emifcnt == 1)
 	{
 		emifcnt_regs = request_mem_region(EMIFCNT_MAP_BASE_ADDR, EMIFCNT_MAP_LEN, "emifcnt");
 		if (!emifcnt_regs)
 			return 1;
-		emifcnt_reg_base = (resource_size_t)ioremap_nocache(emifcnt_regs->start, 8);
+		emifcnt_reg_base = (resource_size_t)ioremap_nocache(emifcnt_regs->start, EMIFCNT_MAP_LEN);
 		if (!emifcnt_reg_base)
 			return 1;
 		//Now enable READ+WRITE monitoring counters
@@ -235,7 +245,7 @@ module_param(emifcnt, int, 0);
 
 late_initcall(peemuperf_init);
 module_exit(peemuperf_exit);
-MODULE_DESCRIPTION("PMU driver - insmod peemuperf.ko evdelay=500 evlist=1,68,3,4 evdebug=1");
+MODULE_DESCRIPTION("PMU driver - insmod peemuperf.ko evdelay=500 evlist=1,68,3,4 evdebug=0 emifcnt=0");
 MODULE_AUTHOR("Prabindh Sundareson <prabu@ti.com>");
 MODULE_LICENSE("GPL v2");
 
