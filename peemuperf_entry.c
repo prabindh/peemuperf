@@ -19,6 +19,8 @@ static void pmu_stop(void);
 static int __peemuperf_init_checks(void);
 static void __exit peemuperf_exit(void);
 
+static int emifcnt = 0;
+
 #if defined(CONFIG_PROC_FS)
 #include <linux/proc_fs.h>
 #define MAX_PROC_BUF_LEN 1000
@@ -86,6 +88,13 @@ static void pmu_stop(void)
 		overflow,cycle_count);
 #endif
 
+	if(emifcnt == 1)
+	{
+		//Now read the READ+WRITE monitoring counters
+		 emifreadcount = ioread32(emifcnt_reg_base+0x80);
+		 emifwritecount = ioread32(emifcnt_reg_base+0x84);
+	}
+
 }
 
 
@@ -152,6 +161,8 @@ static __init int register_proc(void)
 * Entry and Exit
 ****************************************************************************/
 static struct task_struct *peemuperf_task;
+static struct resource *emifcnt_regs;
+
 static int __peemuperf_init_checks()
 {
 	if(evdebug == 1) printk("Event inputs: %d %d %d %d\n", evlist[0], 
@@ -160,6 +171,22 @@ static int __peemuperf_init_checks()
 	available_evcount = getPMN();
 	peemuperf_task = kthread_run(peemuperf_thread,(void *)0, 
 				"peemuperf_thread");
+	
+#define EMIFCNT_MAP_LEN 0x100
+#define EMIFCNT_MAP_BASE_ADDR 0x4c000000
+
+	if(emifcnt == 1)
+	{
+		emifcnt_regs = request_mem_region(EMIFCNT_MAP_BASE_ADDR, EMIFCNT_MAP_LEN, "emifcnt");
+		if (!emifcnt_regs)
+			return 1;
+		emifcnt_reg_base = (resource_size_t)ioremap_nocache(emifcnt_regs->start, 8);
+		if (!emifcnt_reg_base)
+			return 1;
+		//Now enable READ+WRITE monitoring counters
+		 iowrite32(0x80028003, emifcnt_reg_base+0x88);
+	}
+
 	return 0;
 }
 
@@ -189,6 +216,12 @@ static void __exit peemuperf_exit()
 #if defined(CONFIG_PROC_FS)
 	remove_proc_entry("peemuperf", NULL);
 #endif
+
+	if(emifcnt == 1)
+	{
+		release_mem_region(EMIFCNT_MAP_BASE_ADDR, EMIFCNT_MAP_LEN);
+		iounmap(emifcnt_reg_base);
+	}
 }
 
 
@@ -198,6 +231,7 @@ static void __exit peemuperf_exit()
 module_param(evdelay, int, 500);
 module_param(evdebug, int, 0);
 module_param_array(evlist, int, &evlist_count, 0000);
+module_param(emifcnt, int, 0);
 
 late_initcall(peemuperf_init);
 module_exit(peemuperf_exit);
