@@ -1,7 +1,7 @@
 peemuperf
 =========
 
-Linux Performance Monitoring using PMU - ARM Cycles, Cache misses, and more ...
+Linux Performance Monitoring using PMU and TI EMIF data - ARM Cycles, Cache misses, Real DDR bandwidth, and more ...
 
 Usage
 =========
