@@ -94,8 +94,8 @@ static void pmu_stop(void)
 	if(emifcnt == 1)
 	{
 		//Now read the READ+WRITE monitoring counters
-		 emif_readcount = ioread32(emifcnt_reg_base+0x80);
-		 emif_writecount = ioread32(emifcnt_reg_base+0x84);
+		 emif_writecount = ioread32(emifcnt_reg_base+0x80);
+		 emif_readcount = ioread32(emifcnt_reg_base+0x84);
 	}
 	if(evdebug == 1) printk("EMIF.readcount= 0x%x, EMIF.writecount= 0x%x\n",
 		emif_readcount, emif_writecount);
@@ -193,7 +193,8 @@ static int __peemuperf_init_checks()
 		emifcnt_reg_base = (resource_size_t)ioremap_nocache(emifcnt_regs->start, EMIFCNT_MAP_LEN);
 		if (!emifcnt_reg_base)
 			return 1;
-		//Now enable READ+WRITE monitoring counters
+		//Now enable READ+WRITE monitoring counters 
+		//(READ=0x2 for CNT_1, WRITE=0x3 for CNT_2)
 		 iowrite32(0x80028003, emifcnt_reg_base+0x88);
 	}
 
