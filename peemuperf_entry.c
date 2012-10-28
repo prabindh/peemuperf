@@ -27,7 +27,7 @@ static void __exit peemuperf_exit(void);
 static int emifcnt = 0;
 static int emif_readcount = 0;
 static int emif_writecount = 0;
-static void* emifcnt_reg_base;
+static resource_size_t emifcnt_reg_base;
 
 #if defined(CONFIG_PROC_FS)
 #include <linux/proc_fs.h>
@@ -230,7 +230,7 @@ static void __exit peemuperf_exit()
 	if(emifcnt == 1)
 	{
 		release_mem_region(EMIFCNT_MAP_BASE_ADDR, EMIFCNT_MAP_LEN);
-		iounmap(emifcnt_reg_base);
+		iounmap((void __iomem *)emifcnt_reg_base);
 	}
 }
 
