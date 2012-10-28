@@ -5,7 +5,7 @@ Linux Performance Monitoring using PMU - ARM Cycles, Cache misses, and more ...
 
 Usage
 =========
---> insmod peemuperf.ko evdelay=500 evlist=1,68,3,4 evdebug=1
+--> insmod peemuperf.ko evdelay=500 evlist=1,68,3,4 evdebug=1 emifcnt=1
 
 --> rmmod peemuperf.ko
 
@@ -27,24 +27,38 @@ evlist = Decimal value of event IDs to be monitored (refer ARM TRM). If not spec
 
 evdebug = 0 (default - no messages from kernel module) / 1 (event counters are printed out - warning: will flood the console)
 
+emifcnt = 0 (default - no usage of EMIF DDR monitor for READ/write count) / 1 (use EMIF DDR monitor). For more details, refer to EMIF documentation for example at www.ti.com/lit/ug/sprugv8c/sprugv8c.pdf
+
 Output
 =======
-An example console output when evdebug = 1, is below (CPU MHz = 720 MHz, sampling every 500 millisec):
+An example console output when evdebug = 1, is below (CPU MHz = 720 MHz, sampling every 1000 millisec):
+(EMIF outputs are not shown - truncated)
 
-[  137.040557] CountEvent0=0x1,CountEvent1=0x44,CountEvent2=0x3,       
-       
-[  137.556121] Counter0=233636,Counter1=930969,Counter2=772476,Counter3=41281941
+[  100.066070] 49031    2388256 173679  20677707        0       11362862       
+[  101.096008] 50458    2322475 169335  20240942        0       11362603       
+[  102.126007] 75056    2384952 184637  20614303        0       11362506       
+[  103.156036] 49902    2322703 169203  20224376        0       11362827       
+[  104.186035] 48974    2320928 168278  20198781        0       11362768       
 
-[  137.563568] Overflow flag: = 0, Cycle Count: = 5799665
 
-The Event IDs, the Counter values, and Overflow indication, along with Cycle count is provided.
-NOTE: Cycle count is configured to be divided by 64, compared to CPU clock
+The Counter values, Overflow indication, Cycle count, EMIF read and write count is provided.
+NOTE: PMU Cycle count is configured to be divided by 64, compared to CPU clock
 
 Usage of proc entry
 ===================
 peemuperf exposes event information (same information as above) via proc entry, and can be used by userland applications
 
 cat /proc/peemuperf
+
+root@am335x-evm:/media/sda1# cat /proc/peemuperf  
+PMU.counter[0]= 54363                                                           
+PMU.counter[1]= 2339356                                                         
+PMU.counter[2]= 172534                                                          
+PMU.counter[3]= 20313519                                                        
+PMU.overflow= 0                                                                 
+PMU.CCNT= 11362787                                                              
+EMIF.readcount= 1705266985                                                      
+EMIF.writecount= 2316069476                                                   
 
 Validation
 =========
