@@ -102,10 +102,10 @@ static void pmu_stop(void)
 
 #if defined(CONFIG_PROC_FS)
 	currProcBufLen += sprintf(proc_buf + currProcBufLen,
-		"PMU.overflow= 0x%x\nPMU.CCNT= %d \n", 
+		"PMU.overflow= %d\nPMU.CCNT= %d\n",
 		overflow,cycle_count);
 	currProcBufLen += sprintf(proc_buf + currProcBufLen,
-		"EMIF.readcount= 0x%x\nEMIF.writecount= 0x%x\n",
+		"EMIF.readcount= %d\nEMIF.writecount= %d\n",
 		emif_readcount, emif_writecount);
 #endif
 }
