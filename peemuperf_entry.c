@@ -193,8 +193,8 @@ static int __peemuperf_init_checks()
 		emifcnt_reg_base = (resource_size_t)ioremap_nocache(emifcnt_regs->start, EMIFCNT_MAP_LEN);
 		if (!emifcnt_reg_base)
 			return 1;
-		//Now enable READ+WRITE monitoring counters 
-		//(READ=0x2 for CNT_1, WRITE=0x3 for CNT_2)
+		//Now enable READ+WRITE monitoring counters using PERF_CNT_CFG
+		//(READ=0x2 for CNT_2, WRITE=0x3 for CNT_1)
 		 iowrite32(0x80028003, emifcnt_reg_base+0x88);
 	}
 
