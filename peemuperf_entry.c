@@ -28,6 +28,8 @@ static int emifcnt = 0;
 static int emif_readcount = 0;
 static int emif_writecount = 0;
 static resource_size_t emifcnt_reg_base;
+static int emiflist[2] = {2, 3};
+static int emiflist_count = 2;
 
 #if defined(CONFIG_PROC_FS)
 #include <linux/proc_fs.h>
@@ -175,6 +177,7 @@ static struct resource *emifcnt_regs;
 
 static int __peemuperf_init_checks()
 {
+	u32 regval1, regval2;
 	if(evdebug == 1) printk("Event inputs: %d %d %d %d\n", evlist[0], 
 			evlist[1], evlist[2], evlist[3]);
 
@@ -192,7 +195,12 @@ static int __peemuperf_init_checks()
 			return 1;
 		//Now enable READ+WRITE monitoring counters using PERF_CNT_CFG
 		//(READ=0x2 for CNT_2, WRITE=0x3 for CNT_1)
-		 iowrite32(0x80028003, emifcnt_reg_base+0x88);
+		regval2 = 0x8000;
+		regval2 |= (emiflist[0] & 0xF);
+		regval2 = (regval2 << 16) & 0xFFFF0000;
+		regval1 = 0x8000;
+		regval1 |= (emiflist[1] & 0xF);
+		iowrite32((regval2|regval1), emifcnt_reg_base+0x88);
 	}
 
 	return 0;
@@ -240,10 +248,11 @@ module_param(evdelay, int, 500);
 module_param(evdebug, int, 0);
 module_param_array(evlist, int, &evlist_count, 0000);
 module_param(emifcnt, int, 0);
+module_param_array(emiflist, int, &emiflist_count, 0000);
 
 late_initcall(peemuperf_init);
 module_exit(peemuperf_exit);
-MODULE_DESCRIPTION("PMU driver - insmod peemuperf.ko evdelay=500 evlist=1,68,3,4 evdebug=0 emifcnt=0");
+MODULE_DESCRIPTION("PMU driver - insmod peemuperf.ko evdelay=500 evlist=1,68,3,4 evdebug=0 emifcnt=0 emiflist=2,3");
 MODULE_AUTHOR("Prabindh Sundareson <prabu@ti.com>");
 MODULE_LICENSE("GPL v2");
 

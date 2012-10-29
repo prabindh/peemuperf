@@ -5,7 +5,7 @@ Linux Performance Monitoring using PMU and TI EMIF data - ARM Cycles, Cache miss
 
 Usage
 =========
---> insmod peemuperf.ko evdelay=500 evlist=1,68,3,4 evdebug=1 emifcnt=1
+--> insmod peemuperf.ko evdelay=500 evlist=1,68,3,4 evdebug=1 emifcnt=1 emiflist=2,3
 
 --> rmmod peemuperf.ko
 
@@ -13,7 +13,7 @@ Parameters:
 
 evdelay = Delay between successive reading of samples from event counters (milliSec)
 
-evlist = Decimal value of event IDs to be monitored (refer ARM TRM). If not specified, below are used:
+evlist = Array of decimal values of event IDs to be monitored (refer ARM TRM). If not specified, first four of below are used:
 
    1 ==> Instruction fetch that causes a refill at the lowest level of instruction or unified cache
 
@@ -23,11 +23,25 @@ evlist = Decimal value of event IDs to be monitored (refer ARM TRM). If not spec
 
    4 ==> Data read or write operation that causes a cache access at the lowest level of data or unified cache
 
+   67 ==> All cache accesses
+
+   0x56 ==> Increment for every cycle that no instructions are available for issue
+
 (for other valid values, refer to Cortex-A TRM)
 
 evdebug = 0 (default - no messages from kernel module) / 1 (event counters are printed out - warning: will flood the console)
 
-emifcnt = 0 (default - no usage of EMIF DDR monitor for READ/write count) / 1 (use EMIF DDR monitor). For more details, refer to EMIF documentation for example at www.ti.com/lit/ug/sprugv8c/sprugv8c.pdf
+emifcnt = 0 (default - no usage of EMIF DDR monitor) / 1 (use EMIF DDR monitor). For more details, refer to EMIF documentation for example at www.ti.com/lit/ug/sprugv8c/sprugv8c.pdf
+
+emiflist = Array of decimal values of EMIF event IDs to be monitored. If not specified, ID 2 (READs), ID 3(WRITES) are used.
+
+   0x4 ==> Total DDR clock cycles Command FIFO is full
+
+   0x5 ==> Total DDR clock cycles Write Data FIFO is full
+
+   0xA ==> Total DDR clock cycles for which DDR i/f was transferring data
+
+(for other valid values, refer EMIF documentation)
 
 Output
 =======
@@ -42,6 +56,7 @@ An example console output when evdebug = 1, is below (CPU MHz = 720 MHz, samplin
 
 
 The Counter values, Overflow indication, Cycle count, EMIF read and write count is provided.
+
 NOTE: PMU Cycle count is configured to be divided by 64, compared to CPU clock
 
 Usage of proc entry
@@ -62,12 +77,13 @@ EMIF.writecount= 2316069476
 
 Validation
 =========
-Tested on kernel 3.2, with gcc4.5 toolchain
+Tested on kernel 3.2, with gcc4.5 toolchain.
+
 Validated on AM335x (OMAP3/Beagle variants will work) - for Cortex-A8. Cortex-A9 has larger counter list, and will also work
 
 Limitations
 ===========
-Interrupts not enabled and not supported, so watchout for overflow flags manually
+PMU interrupts not enabled and not supported, so watchout for overflow flags manually
 
 ===
 prabindh@yahoo.com
