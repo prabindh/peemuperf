@@ -1,0 +1,7 @@
+For imx sabrelite boards:
+
+Taking fsl kernel from - https://github.com/boundarydevices/linux-imx6/tree/boundary-imx_3.14.28_1.0.0_ga
+
+boundary_defconfig
+
+Based on information from  - https://boundarydevices.com/ubuntu-trusty-for-i-mx6-boards-december-2015-kernel-3-14-28-2/
