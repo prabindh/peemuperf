@@ -47,6 +47,24 @@ static int evdebug = 0;
 static void pmu_start(unsigned int event_array[],unsigned int count)
 {
 	int i;
+
+#if 0
+    // For Issue - Zeroed out PMU counters
+    // Untested patch by tarteauxfraises - from - https://community.nxp.com/thread/302685
+    {  
+        u32 val = 0;  
+        // SDER  
+        asm volatile("mrc p15, 0, %0, c1, c1, 1" : "=r" (val));  
+        printk(KERN_ALERT "Lecture de SDER avant %u\n", val);  
+          
+        val = 0b11;  
+        asm volatile("mcr p15, 0, %0, c1, c1, 1" : : "r" (val));  
+  
+        asm volatile("mrc p15, 0, %0, c1, c1, 1" : "=r" (val));  
+        printk(KERN_ALERT "Lecture de SDER apres %u\n", val);  
+    }    
+#endif
+
 	enable_pmu();              // Enable the PMU
 	reset_ccnt();              // Reset the CCNT (cycle counter)
 	reset_pmn();               // Reset the configurable counters
