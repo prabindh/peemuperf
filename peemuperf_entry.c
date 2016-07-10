@@ -11,6 +11,7 @@
 #include <linux/kthread.h>
 #include <linux/delay.h>
 #include <linux/slab.h>
+#include <asm/uaccess.h>
 
 #include "v7_pmu.h"
 #include <linux/ioport.h>
@@ -93,8 +94,8 @@ static void pmu_stop(void)
 	if(emifcnt == 1)
 	{
 		//Now read the READ+WRITE monitoring counters
-		 emif_writecount = ioread32(emifcnt_reg_base+0x80);
-		 emif_readcount = ioread32(emifcnt_reg_base+0x84);
+		 emif_writecount = ioread32((void*)(emifcnt_reg_base+0x80));
+		 emif_readcount = ioread32((void*)(emifcnt_reg_base+0x84));
 	}
 	if(evdebug == 1) printk("%u\t%u\n",
 		emif_readcount, emif_writecount);
@@ -149,14 +150,32 @@ static int peemuperf_proc_read(char *buf, char **start, off_t offset,
 	return MAX_PROC_BUF_LEN;
 }
 
+int peemuperf_proc_read1(struct file *filp, char *buf, size_t count, loff_t *offp )
+{
+	copy_to_user(buf, proc_buf, MAX_PROC_BUF_LEN);
+	return MAX_PROC_BUF_LEN;
+}
+
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(3,9,0))
+static struct file_operations peemuperf_proc_ops = {
+.owner = THIS_MODULE,
+.read = peemuperf_proc_read1
+};
+#endif
+
 static __init int register_proc(void)
 {
 	struct proc_dir_entry *proc_peemuperf;
 	int c;
 
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(3,9,0))
+	proc_peemuperf = proc_create("peemuperf", S_IRUGO, NULL, &peemuperf_proc_ops);
+#else
 	proc_peemuperf = create_proc_entry("peemuperf", S_IRUGO, NULL);
 	if (proc_peemuperf) 
 		proc_peemuperf->read_proc = peemuperf_proc_read;
+#endif
+
 
 	for(c = 0;c < MAX_PROC_BUF_LEN;c ++)
 	{
